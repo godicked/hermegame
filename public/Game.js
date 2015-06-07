@@ -304,7 +304,7 @@ Bomb.prototype = Object.create(PIXI.Sprite.prototype);
 
 
 var loader = PIXI.loader;
-loader.add('background', '/public/images/background.png');
+loader.add('background', '/public/images/background.jpg');
 loader.add('bomb', '/public/images/bomb.png');
 loader.add('candy', 'public/images/candy.png');
 loader.add('perso', '/public/images/perso.jpg');
