@@ -3,7 +3,7 @@
 //
 var game;
 var WIDTH  = 1200;
-var HEIGHT = 600;
+var HEIGHT = 700;
 
 
 //
