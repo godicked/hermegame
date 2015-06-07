@@ -62,6 +62,7 @@ function Map() {
 }
 Map.prototype = Object.create(PIXI.Container.prototype);
 Map.prototype.update = function() {
+    this.background.move(5);
     this.player.move();
     this.generateCandy();
     this.generateBomb();
