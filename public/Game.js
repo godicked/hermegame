@@ -2,7 +2,7 @@
 // Global Variable
 //
 var game;
-var WIDTH  = 800;
+var WIDTH  = 1200;
 var HEIGHT = 600;
 
 
@@ -22,9 +22,13 @@ function Game() {
     this.stage.interactive = true;
     this.map = new Map();
     
-    this.stage.on('click', function(e) {
-        console.log(e.data.getLocalPosition(this.map.bombs));
+    this.stage.on('mousedown', function(e) {
+        this.map.player.up();
     }.bind(this));
+    this.stage.on('mouseup', function(e) {
+        this.map.player.fall();
+    }.bind(this));
+    
     this.stage.addChild(this.map);
     this.update();
     
@@ -40,14 +44,17 @@ Game.prototype.update = function() {
 function Map() {
     PIXI.Container.call(this);
     
-    this.player;
+    this.player = new Player();
     this.background = new TilingBackground(WIDTH, HEIGHT, loader.resources.background.texture);
     this.bombContainer = new PIXI.Container();
     this.candyContainer = new PIXI.Container();
+    this.text = new PIXI.Text('', { font: '30px Arial', fill: '#ffffff', align: 'center', stroke: '#FFFFFF', strokeThickness: 1 });
     
     this.addChild(this.background);
     this.addChild(this.bombContainer);
     this.addChild(this.candyContainer);
+    this.addChild(this.player);
+    this.addChild(this.text);
     
     this.bombCounter = 0;
     this.candyCounter = 0;
@@ -55,10 +62,31 @@ function Map() {
 }
 Map.prototype = Object.create(PIXI.Container.prototype);
 Map.prototype.update = function() {
+    this.player.move();
     this.generateCandy();
     this.generateBomb();
     this.moveCandy(5);
     this.moveBombs(5);
+    this.testCollision();
+    this.text.text = 'score : ' + this.player.score;
+};
+Map.prototype.testCollision = function() {
+    var l = this.candyContainer.children.length;
+    for (i = 0; i < l; i += 1) {
+        if(colision(this.player, this.candyContainer.children[i])) {
+            this.player.score += 10;
+            this.candyContainer.removeChildAt(i);
+            l -= 1;
+        }
+    }
+    
+    l = this.bombContainer.children.length;
+    for (i = 0; i < l; i += 1) {
+        if(colision(this.player, this.bombContainer.children[i])) {
+            this.player.score = 0;
+        }
+    }
+    
 };
 Map.prototype.generateBomb = function() {
     this.bombCounter += 1;
@@ -126,6 +154,59 @@ Map.prototype.generateCandy = function() {
         this.candyCounter = -1;
     }
     this.candyCounter +=1;
+};
+
+function Player() {
+    PIXI.Sprite.call(this);
+    this.texture = loader.resources.perso.texture;
+    this.x = 20;
+    this.height = 90;
+    this.width = 41
+    this.y = HEIGHT-this.height;
+    this.vy = 0;
+    
+    this.g = 20;
+    this.time = 0;
+    this.falling = false;
+    this.iY;
+    
+    this.score = 0;
+    
+}
+Player.prototype = Object.create(PIXI.Sprite.prototype);
+Player.prototype.up = function() {
+    this.reset();
+    this.vy = 10;
+};
+Player.prototype.reset = function() {
+    this.time = false;
+    this.falling = false;
+    this.vy = 0;
+};
+Player.prototype.fall = function() {
+    this.reset();
+    this.iY = this.y;
+    this.falling = true;
+};
+Player.prototype.move = function() {
+    if(this.falling) {
+        this.y = this.iY -((-this.g*this.time*this.time));
+        this.time += 0.1;
+    }
+    else {
+        this.y -= this.vy;
+        if(this.vy) {
+            this.vy += 0.1;
+        }
+    }
+    
+    if(this.y < 0) {
+        this.y = 0;
+    }
+    if(this.y + this.height > HEIGHT) {
+        this.reset();
+        this.y = HEIGHT - this.height;
+    }
 };
 
 function TilingBackground(w, h, texture) {
@@ -225,6 +306,7 @@ var loader = PIXI.loader;
 loader.add('background', '/public/images/background.png');
 loader.add('bomb', '/public/images/bomb.png');
 loader.add('candy', 'public/images/candy.png');
+loader.add('perso', '/public/images/perso.jpg');
 
 loader.on('load', function(loader, resources) {
     console.log('file ' + resources.name + ' : loaded');
@@ -248,6 +330,16 @@ function BombXCandy(bomb, candy) {
        && bomb.y + bomb.height + offset > candy.y
        && bomb.y - offset < candy.y + candy.height) {
         
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+function colision(obj1, obj2) {
+    if(obj1.x + obj1.width > obj2.x && obj1.x < obj2.x + obj2.width && obj1.y + obj1.height > obj2.y && 
+       obj1.y < obj2.y + obj2.height) {
         return true;
     }
     else {
