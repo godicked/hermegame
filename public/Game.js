@@ -177,7 +177,7 @@ function Player() {
 Player.prototype = Object.create(PIXI.Sprite.prototype);
 Player.prototype.up = function() {
     this.reset();
-    this.vy = 10;
+    this.vy = 5;
 };
 Player.prototype.reset = function() {
     this.time = false;
@@ -192,12 +192,12 @@ Player.prototype.fall = function() {
 Player.prototype.move = function() {
     if(this.falling) {
         this.y = this.iY -((-this.g*this.time*this.time));
-        this.time += 0.1;
+        this.time += 0.07;
     }
     else {
         this.y -= this.vy;
         if(this.vy) {
-            this.vy += 0.1;
+            this.vy += 0.07;
         }
     }
     
